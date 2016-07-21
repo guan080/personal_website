@@ -26,6 +26,7 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         print '<User %r>' % self.email
 
+
 # 回调函数，用于从会话中存储的用户 ID 重新加载用户对象。
 # 它应该接受一个用户的 unicode ID 作为参数，并且返回相应的用户对象。
 # 如果 ID 无效的话，它应该返回 None (而不是抛出异常)。(在这种情况下，ID 会被手动从会话中移除且处理会继续)
