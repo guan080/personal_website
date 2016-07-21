@@ -11,4 +11,5 @@ Desktop.ini
 dist
 build
 .idea/
+*.txt
 

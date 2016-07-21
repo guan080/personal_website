@@ -50,19 +50,15 @@ def edit_post():
         post.content = form.content.data
         # 将tag列表处理成Tag对象
         taglist = form.tag.data.split()
-        tags = []
         for tmp in taglist:
-            tag = Tag()
-            tag.tagname = tmp
-            tags.append(tag)
-        post.tags = tags
+            post.tags.append(tmp)
         db.session.add(post)
         flash('文章发表成功！')
         return redirect(url_for('post', posttitle=post.title))
     if current_user is None:
         flash('请先登录！')
         return redirect(url_for('index'))
-    return render_template('reedit_post.html', form=form)
+    return render_template('edit_post.html', form=form)
 
 
 # 后台文章修改界面路由
@@ -77,12 +73,8 @@ def reedit_post(posttitle):
         post.title = form.title.data
         post.content = form.content.data
         taglist = form.tag.data.split()
-        tags = []
         for tmp in taglist:
-            tag = Tag()
-            tag.tagname = tmp
-            tags.append(tag)
-        post.tags = tags
+            post.tags.append(tmp)
         db.session.add(post)
         flash('文章更新成功！')
         return redirect(url_for('post', posttitle=post.title))
@@ -106,7 +98,9 @@ def post(posttitle):
 # 按tag筛选后的页面路由
 @app.route('/tag/<tagname>')
 def tag(tagname):
-    posts = Tag.query.filter_by(tagname=tagname).first().posts
+    tag = Tag()
+    tag.tagname = tagname
+    posts = tag.posts.all()
     return render_template('tag.html', tagname=tagname, posts=posts)
 
 
