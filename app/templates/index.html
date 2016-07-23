@@ -4,6 +4,7 @@
 {% for post in posts %}
     <ul>
         <li>title:<a href="{{ url_for('post', posttitle=post.title) }}" >{{post.title}}</a></li>
+        <li>Category:<a href="{{url_for('category', name=post.category)}}">{{ post.category }}</a> </li>
         <li>post time:{{post.timestamp}}</li>
         <li>views:{{post.views}}</li>
         <li>
@@ -12,6 +13,7 @@
                 <a href="{{ url_for('tag', tagname=tag.tagname) }}">{{tag.tagname}}</a>&nbsp;
             {%endfor%}
         </li>
+        <li><a href="{{url_for('reedit_post', posttitle=post.title)}}">编辑</a></li>
         <li>{{post.content[:200]}}</li>
     </ul>
 {% endfor %}

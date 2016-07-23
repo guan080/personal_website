@@ -1,11 +1,17 @@
 {% extends 'base.html'%}
 {% block page_content %}
-<h1>{{tagname}}</h1>
+<h1>{{name}}</h1>
 {% for post in posts %}
     <ul>
         <li>title:<a href="{{ url_for('post', posttitle=post.title) }}" >{{post.title}}</a></li>
         <li>post time:{{post.timestamp}}</li>
         <li>views:{{post.views}}</li>
+        <li>
+            Tags:
+            {% for tag in post.tags %}
+                <a href="{{ url_for('tag', tagname=tag.tagname) }}">{{tag.tagname}}</a>&nbsp;
+            {%endfor%}
+        </li>
         <li>content:{{post.content}}</li>
     </ul>
 {% endfor %}

@@ -38,11 +38,13 @@ def load_user(user_id):
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     title = db.Column(db.String(240), index=True)
     content = db.Column(db.Text)
     timestamp = db.Column(db.Date, index=True, default=date.today)
     views = db.Column(db.Integer, default=0)
-    tags = db.relationship('Tag', secondary='marks', backref=db.backref('posts', lazy='dynamic'))
+    tags = db.relationship('Tag', secondary='marks', backref=db.backref('posts', lazy='dynamic'), lazy='dynamic')
+
 
     def __repr__(self):
         print '<Post %r>' % self.title
@@ -51,15 +53,25 @@ class Post(db.Model):
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
-    tagname = db.Column(db.String(128))
+    name = db.Column(db.String(128), unique=True)
 
     def __repr__(self):
-        print '<Tag %r>' % self.tagname
+        print '<Tag %r>' % self.name
 
 marks = db.Table('marks',
                 db.Column('post_id', db.Integer, db.ForeignKey('posts.id')),
                 db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'))
                 )
+
+
+class Category(db.Model):
+    __tablename__ = 'categories'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True)
+    posts = db.relationship('Post', backref='category', lazy='dynamic')
+
+    def __repr__(self):
+        print '<Category %r>' % self.name
 
 
 class MicroPost(db.Model):
