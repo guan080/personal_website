@@ -11,7 +11,9 @@ app.debug = True
 app.config['SECRET_KEY'] = 'cptbtptpBcptDtptp'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:password@127.0.0.1:3306/personal_website?charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:password@127.0.0.1:3306/personal_website?charset=utf8&mb4'
+app.config['POSTS_PER_PAGE'] = 10
+app.config['MICROPOSTS_PER_PAGE'] = 20
 db = SQLAlchemy(app)
 loginmanager = LoginManager(app)
 bootstrap = Bootstrap(app)

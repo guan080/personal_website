@@ -14,8 +14,12 @@ sys.setdefaultencoding('utf-8')
 @app.route('/')
 @app.route('/index')
 def index():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template('index.html', posts=posts)
+    page = request.args.get('page', 1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
+    )
+    posts = pagination.items
+    return render_template('index.html', posts=posts, Category=Category, pagination=pagination)
 
 
 # 登陆界面路由
@@ -47,15 +51,16 @@ def edit_post():
     if form.validate_on_submit():
         post = Post()
         post.title = form.title.data
+        post.category_id = form.category.data
         post.content = form.content.data
         # 将tag列表处理成Tag对象
         taglist = form.tag.data.split()
         for tmp in taglist:
-            if Tag.query.filter_by(tagname=tmp).first() is None:
+            if Tag.query.filter_by(name=tmp).first() is None:
                 newtag = Tag()
                 newtag.name = tmp
                 db.session.add(newtag)
-            tag = Tag.query.filter_by(tagname=tmp).first()
+            tag = Tag.query.filter_by(name=tmp).first()
             post.tags.append(tag)
         db.session.add(post)
         flash('文章发表成功！')
@@ -78,14 +83,15 @@ def reedit_post(posttitle):
         for tmp in post.tags.all():
             post.tags.remove(tmp)
         post.title = form.title.data
+        post.category_id = form.category.data
         post.content = form.content.data
         tag_list = form.tag.data.split()
         for tmp in tag_list:
-            if Tag.query.filter_by(tagname=tmp).first() is None:
+            if Tag.query.filter_by(name=tmp).first() is None:
                 newtag = Tag()
                 newtag.name = tmp
                 db.session.add(newtag)
-            tag = Tag.query.filter_by(tagname=tmp).first()
+            tag = Tag.query.filter_by(name=tmp).first()
             post.tags.append(tag)
         db.session.add(post)
         flash('文章更新成功！')
@@ -94,7 +100,7 @@ def reedit_post(posttitle):
     form.content.data = post.content
     tags = ''
     for tmp in post.tags:
-        tags += tmp.tagname + " "
+        tags += tmp.name + " "
     form.tag.data = tags
     return render_template('edit_post.html', form=form, post=post)
 
@@ -110,25 +116,43 @@ def post(posttitle):
 # 按tag筛选后的页面路由
 @app.route('/tag/<name>')
 def tag(name):
+    page = request.args.get('page', 1, type=int)
     tag = Tag.query.filter_by(name=name).first()
-    posts = tag.posts.all()
-    return render_template('tag.html', name=name, posts=posts)
+    pagination = tag.posts.order_by(Post.timestamp.desc()).paginate(
+        page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
+    )
+    posts = pagination.items
+    return render_template('tag.html', name=name, posts=posts, pagination=pagination, Category=Category)
 
 
 @app.route('/category/<name>')
 def category(name):
+    page = request.args.get('page', 1, type=int)
     category = Category.query.filter_by(name=name).first()
-    posts = category.posts
-    return render_template('category.html', posts=posts)
+    pagination = category.posts.paginate(
+        page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
+    )
+    posts = pagination.items
+    return render_template('category.html', posts=posts, name=name, Category=Category, pagination=pagination)
 
 
 @app.route('/microposts')
 def microposts():
-    posts = MicroPost.query.order_by(microposts.timestamp.desc()).all()
-    render_template('microposts.html', posts=posts)
+    page = request.args.get('page', 1, type=int)
+    pagination = MicroPost.query.order_by(MicroPost.timestamp.desc()).paginate(
+        page, per_page=app.config['MICROPOSTS_PER_PAGE'], error_out=False
+    )
+    posts = pagination.items
+    return render_template('microposts.html', posts=posts, pagination=pagination)
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 
 # 404处理路由
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+

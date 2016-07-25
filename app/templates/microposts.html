@@ -1,11 +1,18 @@
 {% extends 'base.html' %}
+{% import '_macros.html' as macros %}
 
 {%block page_content%}
-{% for post in microposts %}
-    <ul>
+{% for post in posts %}
+    <div>
         <li>post time:{{post.timestamp}}</li>
         <li>{{post.content}}</li>
-        <li><a href="">删除</a> </li>
-    </ul>
+        {% if current_user.is_authenticated %}
+            <li><a href="">删除</a> </li>
+        {%endif%}
+    </div>
 {% endfor %}
+<div class="pagination">
+    {{ macros.pagination_widget(pagination, 'microposts') }}
+</div>
 {%endblock%}
+

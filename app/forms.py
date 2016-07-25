@@ -13,7 +13,7 @@ class LoginForm(Form):
 
 
 class EditorForm(Form):
-    category = SelectField('分类', validators=[DataRequired()], choices=[])
+    category = SelectField('分类', validators=[DataRequired()], coerce=int, choices=[(c.id, c.name) for c in Category.query.all()])
     title = StringField('标题', validators=[DataRequired()])
     tag = StringField('标签（以空格分隔）')
     content = TextAreaField('正文')

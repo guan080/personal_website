@@ -45,6 +45,23 @@ class Post(db.Model):
     views = db.Column(db.Integer, default=0)
     tags = db.relationship('Tag', secondary='marks', backref=db.backref('posts', lazy='dynamic'), lazy='dynamic')
 
+    @staticmethod
+    def generate_fake(count=100):
+        import forgery_py
+        from random import seed, randint
+        seed()
+        for i in range(count):
+            tags = Tag.query.limit(3).all()
+            category = Category.query.all()
+            post = Post(
+                category=category[randint(0, len(category) - 1)],
+                title=forgery_py.lorem_ipsum.title(),
+                content=forgery_py.lorem_ipsum.paragraphs(),
+                timestamp=forgery_py.date.date(True),
+                tags=tags
+            )
+            db.session.add(post)
+            db.session.commit()
 
     def __repr__(self):
         print '<Post %r>' % self.title
@@ -79,6 +96,20 @@ class MicroPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+    @staticmethod
+    def generate_fake(count=100):
+        from random import seed, randint
+        import forgery_py
+
+        seed()
+        for i in range(count):
+            post = MicroPost(
+                content=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
+                timestamp=forgery_py.datetime.datetime(True)
+            )
+            db.session.add(post)
+            db.session.commit()
 
     def __repr__(self):
         print '<MicroPost %r>' % self.content
