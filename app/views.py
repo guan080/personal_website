@@ -171,9 +171,70 @@ def wechathandle():
     time = wechat.message.time
     type = wechat.message.type
     raw = wechat.message.raw
+    # 设置微信号绑定标志位
+    bind = False
+    delete_flag = False
+    u = User.query.filter_by(email=app.config['ADMIN_EMAIL']).first()
+    if u.wechat_open_id == source:
+        bind = True
+
+    # TextMessage处理
     if isinstance(wechat.message, TextMessage):
         content = wechat.message.content
-        return wechat.response_text(content=content)
+
+        # 微信号已绑定
+        if bind:
+            if content == 'cxbd' or content == 'bdcx' or content == '查询绑定' or content == '绑定查询':
+                return wechat.response_text(content='已绑定')
+            # 解绑微信号
+            if content[:3] == 'jb ' or content[:3] == '解绑 ':
+                strs = content.split(' ', 2)
+                if len(strs) < 2:
+                    return wechat.response_text(content='What are you 弄啥咧？')
+                email = strs[1]
+                password = strs[2]
+                u = User.query.filter_by(email=email).first()
+                if u is None:
+                    return wechat.response_text(content='What are you 弄啥咧？账号呢？')
+                if u.check_password(password):
+                    u.wechat_open_id = ''
+                    return wechat.response_text(content='账号已解绑')
+                else:
+                    return wechat.response_text(content='账号不对？密码不对？')
+            if content == 'sc' or content == '删除':
+                microposts = MicroPost.query.order_by(MicroPost.timestamp.desc()).limit(5).all()
+                contents = ''
+                for micropost in microposts:
+                    contents = contents + str(micropost.id) + '   ' + micropost.content + '\n'
+                delete_flag = True
+                return wechat.response_text(content=contents)
+            micropost = MicroPost()
+            micropost.content = content
+            db.session.add(micropost)
+            return wechat.response_text(content='说说已发表')
+
+        # 微信号未绑定
+        else:
+            if content == 'cxbd' or content == 'bdcx' or content == '查询绑定' or content == '绑定查询':
+                return wechat.response_text(content='未绑定')
+            # 绑定微信号
+            if content[:3] == 'bd ' or content[:3] == '绑定 ':
+                strs = content.split(' ', 2)
+                if len(strs) < 2:
+                    return wechat.response_text(content='What are you 弄啥咧？')
+                email = strs[1]
+                password = strs[2]
+                u = User.query.filter_by(email=email).first()
+                if u is None:
+                    return wechat.response_text(content='What are you 弄啥咧？账号呢？')
+                if u.wechat_open_id == source:
+                    return wechat.response_text(content='账号已经绑定过')
+                if u.check_password(password):
+                    u.wechat_open_id = source
+                    return wechat.response_text(content='账号绑定成功')
+                else:
+                    return wechat.response_text(content='账号不对？密码不对？')
+            return wechat.response_text(content='hello world!')
     if isinstance(wechat.message, ImageMessage):
         picurl = wechat.message.picurl
         media_id = wechat.message.media_id
@@ -220,7 +281,7 @@ def wechathandle():
 
 # @app.route('/wexin')
 # def wexin():
-#     # raw = app.config['RAW']
+#     raw = app.config['RAW']
 #     return render_template('wexin.html', raw=raw)
 
 

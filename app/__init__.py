@@ -38,7 +38,7 @@ conf = WechatConf(
     access_token_expires_at=app.config['WECHAT_ACCESS_TOKEN_EXPIRES_AT']
 )
 wechat = WechatBasic(conf=conf)
-refresh_access_token()
+# refresh_access_token()
 
 from . import views
 
