@@ -1,11 +1,16 @@
 # coding:utf-8
-from flask import render_template, url_for, redirect, request, flash, abort
-from . import app
+import sys
+from flask import render_template, url_for, redirect, request, flash, abort, session
 from flask_login import login_required, current_user, login_user, logout_user
+
+import config
+from app import app, db, wechat
 from .forms import LoginForm, EditorForm
 from .models import User, Post, MicroPost, Tag, Category
-from app import db
-import sys
+from wechat_sdk.exceptions import ParseError
+from wechat_sdk.messages import TextMessage, ImageMessage, VoiceMessage, VideoMessage, ShortVideoMessage, LocationMessage,\
+                                    LinkMessage, EventMessage
+
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
@@ -48,6 +53,7 @@ def logout():
 @login_required
 def edit_post():
     form = EditorForm()
+    form.category.choices = [(c.id, c.name) for c in Category.query.all()]
     if form.validate_on_submit():
         post = Post()
         post.title = form.title.data
@@ -79,6 +85,7 @@ def reedit_post(posttitle):
     if post is None:
         abort(404)
     form = EditorForm()
+    form.category.choices = [(c.id, c.name) for c in Category.query.all()]
     if form.validate_on_submit():
         for tmp in post.tags.all():
             post.tags.remove(tmp)
@@ -149,6 +156,72 @@ def microposts():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+
+# 微信部分
+@app.route('/wechat', methods=['GET', 'POST'])
+def wechathandle():
+    try:
+        wechat.parse_data(request.data)
+    except ParseError:
+        print 'Invalid Body Text.'
+    id = wechat.message.id
+    target = wechat.message.target
+    source = wechat.message.source
+    time = wechat.message.time
+    type = wechat.message.type
+    raw = wechat.message.raw
+    if isinstance(wechat.message, TextMessage):
+        content = wechat.message.content
+        return wechat.response_text(content=content)
+    if isinstance(wechat.message, ImageMessage):
+        picurl = wechat.message.picurl
+        media_id = wechat.message.media_id
+        return wechat.response_image(media_id=media_id)
+    if isinstance(wechat.message, VoiceMessage):
+        media_id = wechat.message.media_id
+        format = wechat.message.format
+        recognition = wechat.message.recognition
+        return wechat.response_voice(media_id=media_id)
+    if isinstance(wechat.message, VideoMessage) or isinstance(wechat.message, ShortVideoMessage):
+        media_id = wechat.message.media_id
+        thumb_media_id = wechat.message.thumb_media_id
+        return wechat.response_video(media_id=media_id)
+    if isinstance(wechat.message, LocationMessage):
+        location = wechat.message.location
+        scale = wechat.message.scale
+        label = wechat.message.label
+        return wechat.response_none()
+    if isinstance(wechat.message, EventMessage):
+        if wechat.message.type == 'subscribe':  # 关注事件(包括普通关注事件和扫描二维码造成的关注事件)
+            key = wechat.message.key  # 对应于 XML 中的 EventKey (普通关注事件时此值为 None)
+            ticket = wechat.message.ticket  # 对应于 XML 中的 Ticket (普通关注事件时此值为 None)
+        elif wechat.message.type == 'unsubscribe':  # 取消关注事件（无可用私有信息）
+            pass
+        elif wechat.message.type == 'scan':  # 用户已关注时的二维码扫描事件
+            key = wechat.message.key  # 对应于 XML 中的 EventKey
+            ticket = wechat.message.ticket  # 对应于 XML 中的 Ticket
+        elif wechat.message.type == 'location':  # 上报地理位置事件
+            latitude = wechat.message.latitude  # 对应于 XML 中的 Latitude
+            longitude = wechat.message.longitude  # 对应于 XML 中的 Longitude
+            precision = wechat.message.precision  # 对应于 XML 中的 Precision
+        elif wechat.message.type == 'click':  # 自定义菜单点击事件
+            key = wechat.message.key  # 对应于 XML 中的 EventKey
+        elif wechat.message.type == 'view':  # 自定义菜单跳转链接事件
+            key = wechat.message.key  # 对应于 XML 中的 EventKey
+        elif wechat.message.type == 'templatesendjobfinish':  # 模板消息事件
+            status = wechat.message.status  # 对应于 XML 中的 Status
+        elif wechat.message.type in ['scancode_push', 'scancode_waitmsg', 'pic_sysphoto',
+                                     'pic_photo_or_album', 'pic_weixin', 'location_select']:  # 其他事件
+            key = wechat.message.key  # 对应于 XML 中的 EventKey
+        return wechat.response_none()
+
+
+
+# @app.route('/wexin')
+# def wexin():
+#     # raw = app.config['RAW']
+#     return render_template('wexin.html', raw=raw)
 
 
 # 404处理路由

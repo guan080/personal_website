@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from . import db, loginmanager
+from . import db, login_manager
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(256))
+    wechat_open_id = db.Column(db.String(128))
 
     @property
     def password(self):
@@ -30,7 +31,7 @@ class User(UserMixin, db.Model):
 # 回调函数，用于从会话中存储的用户 ID 重新加载用户对象。
 # 它应该接受一个用户的 unicode ID 作为参数，并且返回相应的用户对象。
 # 如果 ID 无效的话，它应该返回 None (而不是抛出异常)。(在这种情况下，ID 会被手动从会话中移除且处理会继续)
-@loginmanager.user_loader
+@login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 

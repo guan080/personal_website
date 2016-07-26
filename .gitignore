@@ -12,4 +12,5 @@ dist
 build
 .idea/
 *.txt
+config.py
 
