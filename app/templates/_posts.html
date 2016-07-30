@@ -1,19 +1,26 @@
 {% for post in posts %}
-    <ul>
-        <li>title:<a href="{{ url_for('post', posttitle=post.title) }}" >{{post.title}}</a></li>
-        <li>Category:<a href="{{url_for('category', name=Category.query.filter_by(id=post.category_id).first().name)}}">
-            {{Category.query.filter_by(id = post.category_id).first().name}}</a> </li>
-        <li>post time:{{post.timestamp}}</li>
-        <li>views:{{post.views}}</li>
-        <li>
-            Tags:
-            {% for tag in post.tags %}
-                <a href="{{ url_for('tag', name=tag.name) }}">{{tag.name}}</a>&nbsp;
-            {%endfor%}
-        </li>
+    <div>
+        <h4>
+            <small>
+                <a href="{{ url_for('category', name=Category.query.filter_by(id=post.category_id).first().name) }}">
+                    {{ Category.query.filter_by(id = post.category_id).first().name }}</a>
+            </small>
+            <a href="{{ url_for('post', posttitle=post.title) }}">{{ post.title }}</a>
+        </h4>
+        <ul>
+            <li style="display:inline"><span  class="glyphicon glyphicon-calendar" aria-hidden="true"></span>&nbsp;{{ post.timestamp }}&nbsp;&nbsp;</li>
+            <li style="display:inline">
+                <span class="glyphicon glyphicon-tags" aria-hidden="true"></span>
+                {% for tag in post.tags %}
+                    <a href="{{ url_for('tag', name=tag.name) }}">&nbsp;&nbsp;{{ tag.name }}</a>&nbsp;
+                {% endfor %}&nbsp;&nbsp;
+            </li>
+            <li style="display:inline"><span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>&nbsp;&nbsp;{{ post.views }}&nbsp;&nbsp;</li>
         {% if current_user.is_authenticated %}
-            <li><a href="{{url_for('reedit_post', posttitle=post.title)}}">编辑</a></li>
-        {%endif%}
-        <li>{{post.content[:200]}}</li>
-    </ul>
+            <li style="display:inline"><a href="{{ url_for('reedit_post', posttitle=post.title) }}">编辑</a></li>
+        {% endif %}
+        </ul>
+        <li>{{ post.content[:200] }}</li>
+    </div>
+    <hr/>
 {% endfor %}

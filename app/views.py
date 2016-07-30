@@ -1,15 +1,15 @@
 # coding:utf-8
-import sys
+import sys, time
 from flask import render_template, url_for, redirect, request, flash, abort, session
 from flask_login import login_required, current_user, login_user, logout_user
 
-import config
 from app import app, db, wechat
 from .forms import LoginForm, EditorForm
 from .models import User, Post, MicroPost, Tag, Category
 from wechat_sdk.exceptions import ParseError
 from wechat_sdk.messages import TextMessage, ImageMessage, VoiceMessage, VideoMessage, ShortVideoMessage, LocationMessage,\
                                     LinkMessage, EventMessage
+from . import func
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -173,11 +173,9 @@ def wechathandle():
     raw = wechat.message.raw
     # 设置微信号绑定标志位
     bind = False
-    delete_flag = False
     u = User.query.filter_by(email=app.config['ADMIN_EMAIL']).first()
     if u.wechat_open_id == source:
         bind = True
-
     # TextMessage处理
     if isinstance(wechat.message, TextMessage):
         content = wechat.message.content
@@ -203,16 +201,33 @@ def wechathandle():
                     return wechat.response_text(content='账号不对？密码不对？')
             if content == 'sc' or content == '删除':
                 microposts = MicroPost.query.order_by(MicroPost.timestamp.desc()).limit(5).all()
-                contents = ''
+                deleting_microposts = ''
                 for micropost in microposts:
-                    contents = contents + str(micropost.id) + '   ' + micropost.content + '\n'
-                delete_flag = True
-                return wechat.response_text(content=contents)
-            micropost = MicroPost()
-            micropost.content = content
-            db.session.add(micropost)
-            return wechat.response_text(content='说说已发表')
-
+                    deleting_microposts = deleting_microposts + 'id: ' + str(micropost.id) + '\n' + \
+                                        micropost.content + '\n\n'
+                    app.config['MICROPOST_DELETE_ID_LIST'].append(str(micropost.id))
+                app.config['MICROPOST_DELETE_FLAG'] = True
+                return wechat.response_text(content=deleting_microposts)
+            if app.config['MICROPOST_DELETE_FLAG']:
+                if content in app.config['MICROPOST_DELETE_ID_LIST']:
+                    delete_id = int(content)
+                    micropost = MicroPost.query.filter_by(id=delete_id).first()
+                    db.session.delete(micropost)
+                    app.config['MICROPOST_DELETE_FLAG'] = False
+                    return wechat.response_text(content=content + '号说说已删除')
+                app.config['MICROPOST_DELETE_FLAG'] = False
+                return wechat.response_text(content='请重新提交删除指令')
+            if content[:3] == 'ss ' or content[:3] == '说说 ':
+                strs = content.split(' ', 1)
+                if len(strs) < 2:
+                    return wechat.response_text(content='弄啥咧？内容呢？')
+                content = strs[1]
+                micropost = MicroPost()
+                micropost.content = content
+                db.session.add(micropost)
+                return wechat.response_text(content='说说已发表')
+            # content = func.wiki(content)
+            return wechat.response_text(content=content)
         # 微信号未绑定
         else:
             if content == 'cxbd' or content == 'bdcx' or content == '查询绑定' or content == '绑定查询':
@@ -234,7 +249,8 @@ def wechathandle():
                     return wechat.response_text(content='账号绑定成功')
                 else:
                     return wechat.response_text(content='账号不对？密码不对？')
-            return wechat.response_text(content='hello world!')
+            # content = func.wiki(content)
+            return wechat.response_text(content=content)
     if isinstance(wechat.message, ImageMessage):
         picurl = wechat.message.picurl
         media_id = wechat.message.media_id
@@ -276,7 +292,6 @@ def wechathandle():
                                      'pic_photo_or_album', 'pic_weixin', 'location_select']:  # 其他事件
             key = wechat.message.key  # 对应于 XML 中的 EventKey
         return wechat.response_none()
-
 
 
 # @app.route('/wexin')
