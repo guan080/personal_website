@@ -1,0 +1,46 @@
+
+<div class="sidebar">
+    <div class="widget-search">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="关键词">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button">搜索</button>
+          </span>
+        </div>
+    </div>
+    <div class="widget-recent-posts">
+        <div class="post-group">
+            <h4 class="widget-title">最近的文章</h4>
+            <ul>
+                {% for recent_post in recent_posts %}
+                    <li class="recent-post">
+                        <a href="{{ url_for('post', posttitle=recent_post.title) }}">{{ recent_post.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="widget-category">
+        <div class="category-group">
+            <h4 class="sidebar-title">分类</h4>
+            <ul>
+                {% for category in all_categories %}
+                    <li class="sidebar-category">
+                        <a href="{{ url_for('category', name=category.name) }}">
+                            {{ category.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="widget-tag">
+        <div class="tag-group"></div>
+        <h4 class="sidebar-title">标签</h4>
+            <div class="tagcloud">
+                {% for tag in all_tags %}
+                    <a href="{{ url_for('tag', name=tag.name) }}">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+    </div>
+</div>
