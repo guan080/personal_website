@@ -117,6 +117,15 @@ def reedit_post(posttitle):
     return render_template('edit_post.html', form=form, post=post)
 
 
+@app.route('/delete_post/<posttitle>', methods=['GET', 'POST'])
+@login_required
+def delete_post(posttitle):
+    post = Post.query.filter_by(title=posttitle).first()
+    if post is None:
+        abort(404)
+    db.session.delete(post)
+    return redirect('index')
+
 # 文章内页路由
 @app.route('/post/<posttitle>')
 def post(posttitle):

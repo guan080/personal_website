@@ -4,6 +4,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
+from flask_pagedown import PageDown
 from wechat_sdk import WechatConf, WechatBasic
 from wechat_sdk.exceptions import OfficialAPIError
 
@@ -17,6 +18,7 @@ login_manager = LoginManager(app)
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'alibaba'
 bootstrap = Bootstrap(app)
+pagedown = PageDown(app)
 
 
 # wechat部分初始化

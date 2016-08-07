@@ -21,8 +21,11 @@
          </ul>
     </div>
     <div class="entry-summary">
-        <p>{{ post.content}}</p>
-
+        {% if post.content_html %}
+            <p>{{ post.content_html | safe }}......</p>
+        {% else %}
+            <p>{{ post.content }}......</p>
+        {% endif %}
     </div>
 </div>
 {%endblock%}

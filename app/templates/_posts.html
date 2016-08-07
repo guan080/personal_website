@@ -22,11 +22,15 @@
             </ul>
             </div>
             <div class="entry-summary">
-                <p>{{ post.content[:200] }}......</p>
-
+                {% if post.content_html %}
+                    <p>{{ post.content_html[:200] | safe }}......</p>
+                {% else %}
+                    <p>{{ post.content[:200] }}......</p>
+                {% endif %}
             </div>
             <div class="list-inline">
                 {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('delete_post', posttitle=post.title) }}" class="delete-link">删除</a>
                     <a href="{{ url_for('reedit_post', posttitle=post.title)}}" class="edit-link">编辑</a>
                 {% endif %}
                 <a href="{{ url_for('post', posttitle=post.title) }}" class="continue-link">继续阅读</a>

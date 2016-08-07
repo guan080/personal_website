@@ -4,6 +4,8 @@ from . import db, login_manager
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from markdown import markdown
+import bleach
 
 
 class User(UserMixin, db.Model):
@@ -42,9 +44,17 @@ class Post(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     title = db.Column(db.String(240), index=True)
     content = db.Column(db.Text)
+    content_html = db.Column(db.Text)
     timestamp = db.Column(db.Date, index=True, default=date.today)
     views = db.Column(db.Integer, default=0)
     tags = db.relationship('Tag', secondary='marks', backref=db.backref('posts', lazy='dynamic'), lazy='dynamic')
+
+    @staticmethod
+    def on_changed_content(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol', 'pre',
+                        'strong', 'ul', 'h1', 'h2', 'h3', 'h4', 'p']
+        target.content_html = bleach.linkify(bleach.clean(
+            markdown(value, output_format='html'), strip=True))
 
     @staticmethod
     def generate_fake(count=100):
@@ -66,6 +76,8 @@ class Post(db.Model):
 
     def __repr__(self):
         print '<Post %r>' % self.title
+
+db.event.listen(Post.content, 'set', Post.on_changed_content)
 
 
 class Tag(db.Model):
@@ -114,5 +126,6 @@ class MicroPost(db.Model):
 
     def __repr__(self):
         print '<MicroPost %r>' % self.content
+
 
 

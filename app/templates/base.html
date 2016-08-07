@@ -3,7 +3,7 @@
   <head>
     {%- block head %}
     <title>老官的个人网站</title>
-
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     {%- block metas %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {%- endblock metas %}
@@ -25,6 +25,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
+          <img src="{{ url_for('static', filename='fav.png') }}" alt="laoguan" class="navbar-brand">
           <a class="navbar-brand" href="{{ url_for('index') }}">老官</a>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">

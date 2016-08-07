@@ -1,6 +1,11 @@
 {%extends 'base.html'%}
 
-{%block page_content%}
+{%block content%}
 {% import 'bootstrap/wtf.html' as wtf %}
 {{ wtf.quick_form(form) }}
 {%endblock%}
+
+{% block scripts %}
+    {{ super() }}
+    {{ pagedown.include_pagedown() }}
+{% endblock %}
