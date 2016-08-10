@@ -14,10 +14,6 @@ from . import func
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
-all_categories = Category.query.all()
-all_tags = Tag.query.all()
-
 
 # 主页路由
 @app.route('/')
@@ -28,6 +24,9 @@ def index():
         page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
     )
     posts = pagination.items
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('index.html', posts=posts, Category=Category, recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags, pagination=pagination)
 
@@ -126,11 +125,15 @@ def delete_post(posttitle):
     db.session.delete(post)
     return redirect('index')
 
+
 # 文章内页路由
 @app.route('/post/<posttitle>')
 def post(posttitle):
     post = Post.query.filter_by(title=posttitle).first()
     post.views += 1
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('post.html', Category=Category, post=post, recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags)
 
@@ -144,6 +147,9 @@ def tag(name):
         page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
     )
     posts = pagination.items
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('tag.html', name=name, posts=posts, pagination=pagination, recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags, Category=Category)
 
@@ -156,6 +162,9 @@ def category(name):
         page, per_page=app.config['POSTS_PER_PAGE'], error_out=False
     )
     posts = pagination.items
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('category.html', posts=posts, name=name, recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags, pagination=pagination, Category=Category)
 
@@ -167,6 +176,9 @@ def microposts():
         page, per_page=app.config['MICROPOSTS_PER_PAGE'], error_out=False
     )
     posts = pagination.items
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('microposts.html', posts=posts, pagination=pagination, recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags, Category=Category)
 
@@ -180,6 +192,9 @@ def delete_micropost(id):
 
 @app.route('/about')
 def about():
+    recent_posts = Post.query.order_by(Post.timestamp.desc()).limit(5).all()
+    all_tags = Tag.query.all()
+    all_categories = Category.query.all()
     return render_template('about.html', recent_posts=recent_posts,
                            all_categories=all_categories, all_tags=all_tags)
 

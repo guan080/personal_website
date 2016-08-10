@@ -119,7 +119,7 @@ class MicroPost(db.Model):
         for i in range(count):
             post = MicroPost(
                 content=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
-                timestamp=forgery_py.datetime.datetime(True)
+                timestamp=forgery_py.date.date()
             )
             db.session.add(post)
             db.session.commit()
